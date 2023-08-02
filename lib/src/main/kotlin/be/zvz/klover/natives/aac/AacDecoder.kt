@@ -126,13 +126,12 @@ class AacDecoder : NativeResourceHolder() {
 
     /**
      * AAC stream information.
-     */
-    class StreamInfo
-    /**
+     *
      * @param sampleRate Sample rate (adjusted to SBR) of the current stream.
      * @param channels Channel count (adjusted to PS) of the current stream.
      * @param frameSize Number of samples per channel per frame.
-     */(
+     */
+    class StreamInfo(
         /**
          * Sample rate (adjusted to SBR) of the current stream.
          */

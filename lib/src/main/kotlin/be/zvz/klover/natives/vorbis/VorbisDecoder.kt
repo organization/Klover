@@ -30,8 +30,13 @@ class VorbisDecoder : NativeResourceHolder() {
         require(!(!infoBuffer.isDirect || !setupBuffer.isDirect)) { "Buffer argument must be a direct buffer." }
         check(
             library.initialise(
-                instance, infoBuffer, infoBuffer.position(), infoBuffer.remaining(), setupBuffer,
-                setupBuffer.position(), setupBuffer.remaining(),
+                instance,
+                infoBuffer,
+                infoBuffer.position(),
+                infoBuffer.remaining(),
+                setupBuffer,
+                setupBuffer.position(),
+                setupBuffer.remaining(),
             ),
         ) { "Could not initialise library." }
         channelCount = library.getChannelCount(instance)

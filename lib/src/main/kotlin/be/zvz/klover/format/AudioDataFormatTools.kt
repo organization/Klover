@@ -18,7 +18,8 @@ object AudioDataFormatTools {
                 16,
                 format.channelCount,
                 format.channelCount * 2,
-                format.sampleRate.toFloat(), format.codecName() == Pcm16AudioDataFormat.CODEC_NAME_BE,
+                format.sampleRate.toFloat(),
+                format.codecName() == Pcm16AudioDataFormat.CODEC_NAME_BE,
             )
         } else {
             throw IllegalStateException("Only PCM is currently supported.")

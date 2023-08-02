@@ -9,7 +9,8 @@ import be.zvz.klover.natives.architecture.SystemType
 object ConnectorNativeLibLoader {
     private val loaders = arrayOf<NativeLibraryLoader>(
         NativeLibraryLoader.createFiltered(
-            ConnectorNativeLibLoader::class.java, "libmpg123-0",
+            ConnectorNativeLibLoader::class.java,
+            "libmpg123-0",
         ) { it: SystemType -> it.osType === DefaultOperatingSystemTypes.WINDOWS },
         NativeLibraryLoader.create(ConnectorNativeLibLoader::class.java, "connector"),
     )
