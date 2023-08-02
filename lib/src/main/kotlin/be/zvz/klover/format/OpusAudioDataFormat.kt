@@ -8,17 +8,16 @@ import be.zvz.klover.player.AudioConfiguration
 
 /**
  * An [AudioDataFormat] for OPUS.
+ *
+ * @param channelCount     Number of channels.
+ * @param sampleRate       Sample rate (frequency).
+ * @param chunkSampleCount Number of samples in one chunk.
  */
 class OpusAudioDataFormat(channelCount: Int, sampleRate: Int, chunkSampleCount: Int) :
     AudioDataFormat(channelCount, sampleRate, chunkSampleCount) {
     private val maximumChunkSize: Int
     private val expectedChunkSize: Int
 
-    /**
-     * @param channelCount     Number of channels.
-     * @param sampleRate       Sample rate (frequency).
-     * @param chunkSampleCount Number of samples in one chunk.
-     */
     init {
         maximumChunkSize = 32 + 1536 * chunkSampleCount / 960
         expectedChunkSize = 32 + 512 * chunkSampleCount / 960
@@ -53,7 +52,10 @@ class OpusAudioDataFormat(channelCount: Int, sampleRate: Int, chunkSampleCount: 
     }
 
     override fun hashCode(): Int {
-        return super.hashCode()
+        var result = super.hashCode()
+        result = 31 * result + maximumChunkSize
+        result = 31 * result + expectedChunkSize
+        return result
     }
 
     companion object {

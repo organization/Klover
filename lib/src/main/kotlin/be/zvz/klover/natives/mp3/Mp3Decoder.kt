@@ -113,6 +113,7 @@ class Mp3Decoder : NativeResourceHolder() {
          * @param offset Offset to the frame header
          * @return Sample rate
          */
+        @JvmStatic
         fun getFrameSampleRate(buffer: ByteArray, offset: Int): Int {
             return if (isMpegVersionOne(buffer, offset)) {
                 getFrameSampleRateV1(buffer, offset)
@@ -130,6 +131,7 @@ class Mp3Decoder : NativeResourceHolder() {
          * @param offset Offset to the frame header
          * @return Number of channels
          */
+        @JvmStatic
         fun getFrameChannelCount(buffer: ByteArray, offset: Int): Int {
             return if (buffer[offset + 3].toInt() and 0xC0 == 0xC0) 1 else 2
         }
@@ -158,6 +160,7 @@ class Mp3Decoder : NativeResourceHolder() {
          * @param offset Offset to the frame header
          * @return Frame size, or zero if not a valid frame header
          */
+        @JvmStatic
         fun getFrameSize(buffer: ByteArray, offset: Int): Int {
             val first = buffer[offset].toInt() and 0xFF
             val second = buffer[offset + 1].toInt() and 0xFF
@@ -182,6 +185,7 @@ class Mp3Decoder : NativeResourceHolder() {
          * @param offset Offset to the frame header
          * @return Average frame size, assuming CBR
          */
+        @JvmStatic
         fun getAverageFrameSize(buffer: ByteArray, offset: Int): Double {
             val bitRate = getFrameBitRate(buffer, offset)
             val sampleRate = getFrameSampleRate(buffer, offset)
@@ -193,6 +197,7 @@ class Mp3Decoder : NativeResourceHolder() {
          * @param offset Offset to the frame header
          * @return Number of samples per frame.
          */
+        @JvmStatic
         fun getSamplesPerFrame(buffer: ByteArray, offset: Int): Long {
             return if (isMpegVersionOne(buffer, offset)) MPEG1_SAMPLES_PER_FRAME else MPEG2_SAMPLES_PER_FRAME
         }
@@ -201,7 +206,7 @@ class Mp3Decoder : NativeResourceHolder() {
             return buffer[offset + 1].toInt() and 0x08 == 0x08
         }
 
-        val maximumFrameSize: Int
-            get() = calculateFrameSize(true, 320000, 32000, true)
+        @JvmStatic
+        fun getMaximumFrameSize(): Int = calculateFrameSize(true, 320000, 32000, true)
     }
 }

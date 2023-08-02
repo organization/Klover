@@ -7,15 +7,14 @@ import java.nio.ShortBuffer
 
 /**
  * Audio chunk decoder for PCM data.
+ *
+ * @param format Source audio format.
+ * @param bigEndian Whether the samples are in big-endian format (as opposed to little-endian).
  */
 class PcmChunkDecoder(format: AudioDataFormat, bigEndian: Boolean) : AudioChunkDecoder {
     private val encodedAsByte: ByteBuffer
     private val encodedAsShort: ShortBuffer
 
-    /**
-     * @param format Source audio format.
-     * @param bigEndian Whether the samples are in big-endian format (as opposed to little-endian).
-     */
     init {
         encodedAsByte = ByteBuffer.allocate(format.maximumChunkSize())
         if (!bigEndian) {

@@ -120,7 +120,7 @@ class AacDecoder : NativeResourceHolder() {
         )
     }
 
-    protected override fun freeResources() {
+    override fun freeResources() {
         library.destroy(instance)
     }
 

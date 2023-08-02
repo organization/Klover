@@ -8,17 +8,16 @@ import be.zvz.klover.player.AudioConfiguration
 
 /**
  * An [AudioDataFormat] for 16-bit signed PCM.
+ *
+ * @param channelCount     Number of channels.
+ * @param sampleRate       Sample rate (frequency).
+ * @param chunkSampleCount Number of samples in one chunk.
+ * @param bigEndian        Whether the samples are in big-endian format (as opposed to little-endian).
  */
 class Pcm16AudioDataFormat(channelCount: Int, sampleRate: Int, chunkSampleCount: Int, private val bigEndian: Boolean) :
     AudioDataFormat(channelCount, sampleRate, chunkSampleCount) {
     private val silenceBytes: ByteArray
 
-    /**
-     * @param channelCount     Number of channels.
-     * @param sampleRate       Sample rate (frequency).
-     * @param chunkSampleCount Number of samples in one chunk.
-     * @param bigEndian        Whether the samples are in big-endian format (as opposed to little-endian).
-     */
     init {
         silenceBytes = ByteArray(channelCount * chunkSampleCount * 2)
     }
@@ -52,7 +51,10 @@ class Pcm16AudioDataFormat(channelCount: Int, sampleRate: Int, chunkSampleCount:
     }
 
     override fun hashCode(): Int {
-        return super.hashCode()
+        var result = super.hashCode()
+        result = 31 * result + bigEndian.hashCode()
+        result = 31 * result + silenceBytes.contentHashCode()
+        return result
     }
 
     companion object {

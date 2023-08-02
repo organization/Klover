@@ -4,6 +4,11 @@ import be.zvz.klover.natives.NativeResourceHolder
 
 /**
  * Sample rate converter backed by libsamplerate
+ *
+ * @param type Resampling type
+ * @param channels Number of channels
+ * @param sourceRate Source sample rate
+ * @param targetRate Target sample rate
  */
 class SampleRateConverter(type: ResamplingType, channels: Int, sourceRate: Int, targetRate: Int) :
     NativeResourceHolder() {
@@ -11,12 +16,6 @@ class SampleRateConverter(type: ResamplingType, channels: Int, sourceRate: Int, 
     private val ratio = targetRate.toDouble() / sourceRate.toDouble()
     private val instance = library.create(type.ordinal, channels)
 
-    /**
-     * @param type Resampling type
-     * @param channels Number of channels
-     * @param sourceRate Source sample rate
-     * @param targetRate Target sample rate
-     */
     init {
         check(instance != 0L) { "Could not create an instance of sample rate converter." }
     }

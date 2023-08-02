@@ -6,21 +6,17 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Thread factory for daemon threads.
+ *
+ * @param name Name that will be included in thread names.
+ * @param exitCallback Runnable to be executed when the thread exits.
  */
 class DaemonThreadFactory @JvmOverloads constructor(name: String, exitCallback: Runnable? = null) : ThreadFactory {
-    private val group: ThreadGroup
+    private val group: ThreadGroup = Thread.currentThread().threadGroup
     private val threadNumber = AtomicInteger(1)
     private val namePrefix: String
     private val exitCallback: Runnable?
-    /**
-     * @param name Name that will be included in thread names.
-     * @param exitCallback Runnable to be executed when the thread exits.
-     */
-    /**
-     * @param name Name that will be included in thread names.
-     */
+
     init {
-        group = Thread.currentThread().threadGroup
         namePrefix = "lava-daemon-pool-" + name + "-" + poolNumber.getAndIncrement() + "-thread-"
         this.exitCallback = exitCallback
     }

@@ -40,7 +40,9 @@ class SystemType(val architectureType: ArchitectureType, val osType: OperatingSy
             val systemName = properties.systemName
             if (systemName != null) {
                 return SystemType(
-                    object : ArchitectureType { override fun identifier(): String = systemName },
+                    object : ArchitectureType {
+                        override fun identifier(): String = systemName
+                    },
                     UnknownOperatingSystem(
                         Optional.ofNullable(properties.libraryFileNamePrefix).orElse("lib"),
                         Optional.ofNullable(properties.libraryFileNameSuffix).orElse(".so"),
@@ -51,7 +53,9 @@ class SystemType(val architectureType: ArchitectureType, val osType: OperatingSy
             val explicitArchitecture = properties.architectureName
             val architectureType =
                 if (explicitArchitecture != null) {
-                    object : ArchitectureType { override fun identifier(): String = explicitArchitecture }
+                    object : ArchitectureType {
+                        override fun identifier(): String = explicitArchitecture
+                    }
                 } else {
                     DefaultArchitectureTypes.detect()
                 }

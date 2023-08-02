@@ -6,15 +6,14 @@ import java.nio.ShortBuffer
 
 /**
  * A wrapper around the native methods of OpusDecoderLibrary.
+ *
+ * @param sampleRate Input sample rate
+ * @param channels Channel count
  */
 class OpusDecoder(sampleRate: Int, private val channels: Int) : NativeResourceHolder() {
     private val library = OpusDecoderLibrary.instance
     private val instance = library.create(sampleRate, channels)
 
-    /**
-     * @param sampleRate Input sample rate
-     * @param channels Channel count
-     */
     init {
         check(instance != 0L) {
             "Failed to create a decoder instance with sample rate " +
@@ -58,6 +57,7 @@ class OpusDecoder(sampleRate: Int, private val channels: Int) : NativeResourceHo
          * @param length Packet length in the buffer
          * @return Frame size
          */
+        @JvmStatic
         fun getPacketFrameSize(sampleRate: Int, buffer: ByteArray, offset: Int, length: Int): Int {
             if (length < 1) {
                 return 0

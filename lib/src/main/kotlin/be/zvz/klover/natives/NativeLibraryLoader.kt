@@ -14,7 +14,7 @@ import java.util.function.Predicate
 import kotlin.concurrent.Volatile
 
 /**
- * Loads native libraries by name. Libraries are expected to be in classpath /natives/[arch]/[prefix]name[suffix]
+ * Loads native libraries by name. Libraries are expected to be in classpath /natives/<arch>/<prefix>name<suffix>
  */
 class NativeLibraryLoader(
     private val libraryName: String,

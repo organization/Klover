@@ -10,6 +10,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -21,11 +22,14 @@ dependencies {
     implementation(group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8")
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.7")
+    implementation(group = "com.github.walkyst.JAADec-fork", name = "jaadec-ext-aac", version = "0.1.3")
 
     api(group = "com.squareup.okhttp3", name = "okhttp", version = "5.0.0-alpha.11")
     implementation(group = "com.squareup.okhttp3", name = "okhttp-brotli", version = "5.0.0-alpha.11")
 
     api(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.1")
+
+    implementation(group = "commons-io", name = "commons-io", version = "2.13.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

@@ -11,6 +11,10 @@ import kotlin.concurrent.withLock
 /**
  * A frame buffer. Stores the specified duration worth of frames in the internal buffer.
  * Consumes frames in a blocking manner and provides frames in a non-blocking manner.
+ *
+ * @param bufferDuration The length of the internal buffer in milliseconds
+ * @param format The format of the frames held in this buffer
+ * @param stopping Atomic boolean which has true value when the track is in a state of pending stop.
  */
 class AllocatingAudioFrameBuffer(bufferDuration: Int, format: AudioDataFormat, stopping: AtomicBoolean?) :
     AbstractAudioFrameBuffer(format) {
@@ -21,11 +25,6 @@ class AllocatingAudioFrameBuffer(bufferDuration: Int, format: AudioDataFormat, s
     private val audioFrames: ArrayBlockingQueue<AudioFrame>
     private val stopping: AtomicBoolean?
 
-    /**
-     * @param bufferDuration The length of the internal buffer in milliseconds
-     * @param format The format of the frames held in this buffer
-     * @param stopping Atomic boolean which has true value when the track is in a state of pending stop.
-     */
     init {
         fullCapacity = bufferDuration / 20 + 1
         audioFrames = ArrayBlockingQueue(fullCapacity)
@@ -50,7 +49,7 @@ class AllocatingAudioFrameBuffer(bufferDuration: Int, format: AudioDataFormat, s
     }
 
     @Throws(TimeoutException::class, InterruptedException::class)
-    override fun provide(timeout: Long, unit: TimeUnit?): AudioFrame {
+    override fun provide(timeout: Long, unit: TimeUnit): AudioFrame {
         var frame = audioFrames.poll()
         if (frame == null) {
             var terminator = fetchPendingTerminator()

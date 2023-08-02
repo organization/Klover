@@ -3,6 +3,7 @@ package be.zvz.klover.tools.io
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
+import kotlin.math.min
 
 /**
  * A byte buffer exposed as an input stream.
@@ -22,7 +23,7 @@ class ByteBufferInputStream(private val buffer: ByteBuffer) : InputStream() {
     @Throws(IOException::class)
     override fun read(array: ByteArray, offset: Int, length: Int): Int {
         return if (buffer.hasRemaining()) {
-            val chunk = Math.min(buffer.remaining(), length)
+            val chunk = min(buffer.remaining(), length)
             buffer[array, offset, length]
             chunk
         } else {

@@ -7,16 +7,14 @@ import java.nio.ShortBuffer
 
 /**
  * Audio chunk decoder for Opus codec.
+ *
+ * @param format Source audio format.
  */
 class OpusChunkDecoder(format: AudioDataFormat) : AudioChunkDecoder {
     private val decoder: OpusDecoder
-    private val encodedBuffer: ByteBuffer
+    private val encodedBuffer: ByteBuffer = ByteBuffer.allocateDirect(4096)
 
-    /**
-     * @param format Source audio format.
-     */
     init {
-        encodedBuffer = ByteBuffer.allocateDirect(4096)
         decoder = OpusDecoder(format.sampleRate, format.channelCount)
     }
 

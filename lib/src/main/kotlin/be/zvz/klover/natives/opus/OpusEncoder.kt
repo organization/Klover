@@ -6,16 +6,15 @@ import java.nio.ShortBuffer
 
 /**
  * A wrapper around the native methods of OpusEncoderLibrary.
+ *
+ * @param sampleRate Input sample rate
+ * @param channels Channel count
+ * @param quality Encoding quality (0-10)
  */
 class OpusEncoder(sampleRate: Int, channels: Int, quality: Int) : NativeResourceHolder() {
     private val library = OpusEncoderLibrary.instance
     private val instance = library.create(sampleRate, channels, OpusEncoderLibrary.APPLICATION_AUDIO, quality)
 
-    /**
-     * @param sampleRate Input sample rate
-     * @param channels Channel count
-     * @param quality Encoding quality (0-10)
-     */
     init {
         check(instance != 0L) { "Failed to create an encoder instance" }
     }

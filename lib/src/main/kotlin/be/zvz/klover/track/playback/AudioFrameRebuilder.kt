@@ -3,7 +3,7 @@ package be.zvz.klover.track.playback
 /**
  * Interface for classes which can rebuild audio frames.
  */
-interface AudioFrameRebuilder {
+fun interface AudioFrameRebuilder {
     /**
      * Rebuilds a frame (for example by reencoding)
      * @param frame The audio frame

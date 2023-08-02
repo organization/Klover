@@ -7,7 +7,7 @@ import be.zvz.klover.natives.architecture.SystemType
  * Methods for loading the connector library.
  */
 object ConnectorNativeLibLoader {
-    private val loaders = arrayOf<NativeLibraryLoader>(
+    private val loaders = arrayOf(
         NativeLibraryLoader.createFiltered(
             ConnectorNativeLibLoader::class.java,
             "libmpg123-0",

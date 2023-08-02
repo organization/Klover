@@ -21,7 +21,7 @@ interface AudioFrameProvider {
      * @throws InterruptedException When interrupted externally (or for seek/stop).
      */
     @Throws(TimeoutException::class, InterruptedException::class)
-    fun provide(timeout: Long, unit: TimeUnit?): AudioFrame?
+    fun provide(timeout: Long, unit: TimeUnit): AudioFrame?
 
     /**
      * @param targetFrame Frame to update with the details and data of the provided frame.

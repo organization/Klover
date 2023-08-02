@@ -36,7 +36,7 @@ class MutableAudioFrame : AbstractMutableAudioFrame() {
         dataLength = length
     }
 
-    override val data: ByteArray?
+    override val data: ByteArray
         get() {
             val data = ByteArray(dataLength)
             getData(data, 0)

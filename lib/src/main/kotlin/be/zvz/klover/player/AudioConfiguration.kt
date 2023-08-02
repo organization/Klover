@@ -3,9 +3,7 @@ package be.zvz.klover.player
 import be.zvz.klover.format.AudioDataFormat
 import be.zvz.klover.format.StandardAudioDataFormats
 import be.zvz.klover.track.playback.AllocatingAudioFrameBuffer
-import be.zvz.klover.track.playback.AudioFrameBuffer
 import be.zvz.klover.track.playback.AudioFrameBufferFactory
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.Volatile
 import kotlin.math.max
 import kotlin.math.min
@@ -24,7 +22,7 @@ class AudioConfiguration {
         }
 
     @Volatile
-    var outputFormat: AudioDataFormat?
+    var outputFormat: AudioDataFormat
 
     @Volatile
     var isFilterHotSwapEnabled = false
@@ -39,12 +37,8 @@ class AudioConfiguration {
         resamplingQuality = ResamplingQuality.LOW
         outputFormat = StandardAudioDataFormats.DISCORD_OPUS
         frameBufferFactory =
-            object : AudioFrameBufferFactory {
-                override fun create(
-                    bufferDuration: Int,
-                    format: AudioDataFormat,
-                    stopping: AtomicBoolean?,
-                ): AudioFrameBuffer = AllocatingAudioFrameBuffer(
+            AudioFrameBufferFactory { bufferDuration, format, stopping ->
+                AllocatingAudioFrameBuffer(
                     bufferDuration,
                     format,
                     stopping,
