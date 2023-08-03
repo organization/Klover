@@ -30,4 +30,5 @@ interface AudioTrackInfoProvider {
     val uri: String?
     val artworkUrl: String?
     val iSRC: String?
+    val data: ByteArray?
 }

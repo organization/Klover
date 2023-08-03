@@ -10,19 +10,23 @@ import be.zvz.klover.track.info.AudioTrackInfoProvider
  * @param identifier The identifier of the other item.
  * @param title The title of the other item, if known.
  */
-class AudioReference @JvmOverloads constructor(
+open class AudioReference(
     /**
      * The identifier of the other item.
      */
-    override val identifier: String?,
+    override val identifier: String? = null,
     /**
      * The title of the other item, if known.
      */
-    override val title: String?,
+    override val title: String? = null,
     /**
      * Known probe and probe settings of the item to be loaded.
      */
     val containerDescriptor: MediaContainerDescriptor? = null,
+    /**
+     * Audio source optional source data
+     */
+    override val data: ByteArray? = null,
 ) : AudioItem, AudioTrackInfoProvider {
     override val author: String? = null
     override val length: Long? = null

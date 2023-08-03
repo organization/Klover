@@ -286,6 +286,8 @@ class Mp3TrackProvider(private val context: AudioProcessingContext?, private val
         get() = null
     override val iSRC: String?
         get() = null
+    override val data: ByteArray?
+        get() = null
 
     private class FrameHeader(val id: String, val size: Int, flags: Int) {
         @Suppress("unused")

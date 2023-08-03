@@ -23,6 +23,8 @@ class AudioTrackInfoBuilder private constructor() : AudioTrackInfoProvider {
     private var isStream: Boolean? = null
     override var iSRC: String? = null
         private set
+    override var data: ByteArray? = null
+        private set
 
     fun setTitle(value: String?): AudioTrackInfoBuilder {
         title = value ?: title
@@ -64,6 +66,11 @@ class AudioTrackInfoBuilder private constructor() : AudioTrackInfoProvider {
         return this
     }
 
+    fun setData(value: ByteArray?): AudioTrackInfoBuilder {
+        data = value ?: data
+        return this
+    }
+
     /**
      * @param provider The track info provider to apply to the builder.
      * @return this
@@ -76,6 +83,7 @@ class AudioTrackInfoBuilder private constructor() : AudioTrackInfoProvider {
             .setUri(provider.uri)
             .setArtworkUrl(provider.artworkUrl)
             .setISRC(provider.iSRC)
+            .setData(provider.data)
     }
 
     /**
@@ -92,6 +100,7 @@ class AudioTrackInfoBuilder private constructor() : AudioTrackInfoProvider {
             uri,
             artworkUrl,
             iSRC,
+            data,
         )
     }
 

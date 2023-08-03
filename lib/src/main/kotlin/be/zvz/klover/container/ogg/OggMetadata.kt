@@ -22,6 +22,8 @@ class OggMetadata(private val tags: Map<String, String>, override val length: Lo
         get() = null
     override val iSRC: String?
         get() = null
+    override val data: ByteArray?
+        get() = null
 
     companion object {
         val EMPTY = OggMetadata(emptyMap(), Units.DURATION_MS_UNKNOWN)

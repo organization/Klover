@@ -110,11 +110,11 @@ class M3uPlaylistContainerProbe : MediaContainerProbe {
         private val M3U_HEADER_TAG = intArrayOf('#'.code, 'E'.code, 'X'.code, 'T'.code, 'M'.code, '3'.code, 'U'.code)
         private val M3U_ENTRY_TAG = intArrayOf('#'.code, 'E'.code, 'X'.code, 'T'.code, 'I'.code, 'N'.code, 'F'.code)
         private fun getAsHttpReference(reference: AudioReference): AudioReference? {
-            if (reference.identifier != null) {
-                if (reference.identifier.startsWith("https://") || reference.identifier.startsWith("http://")) {
+            reference.identifier?.let { identifier ->
+                if (identifier.startsWith("https://") || identifier.startsWith("http://")) {
                     return reference
-                } else if (reference.identifier.startsWith("icy://")) {
-                    return AudioReference("http://" + reference.identifier.substring(6), reference.title)
+                } else if (identifier.startsWith("icy://")) {
+                    return AudioReference("http://" + identifier.substring(6), reference.title)
                 }
             }
             return null

@@ -59,6 +59,8 @@ class MpegTsElementaryInputStream(inputStream: InputStream, elementaryDataType: 
                 get() = null
             override val iSRC: String?
                 get() = null
+            override val data: ByteArray?
+                get() = null
         }
 
     @Throws(IOException::class)

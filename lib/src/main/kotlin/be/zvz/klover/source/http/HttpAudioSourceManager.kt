@@ -25,7 +25,7 @@ import java.net.URISyntaxException
 /**
  * Audio source manager which implements finding audio files from HTTP addresses.
  */
-class HttpAudioSourceManager @JvmOverloads constructor(containerRegistry: MediaContainerRegistry = MediaContainerRegistry.DEFAULT_REGISTRY) :
+class HttpAudioSourceManager(containerRegistry: MediaContainerRegistry = MediaContainerRegistry.DEFAULT_REGISTRY) :
     ProbingAudioSourceManager(containerRegistry) {
     /**
      * @return Get an HTTP interface for a playing track.
@@ -108,10 +108,15 @@ class HttpAudioSourceManager @JvmOverloads constructor(containerRegistry: MediaC
 
     companion object {
         fun getAsHttpReference(reference: AudioReference): AudioReference? {
-            if (reference.identifier!!.startsWith("https://") || reference.identifier!!.startsWith("http://")) {
-                return reference
-            } else if (reference.identifier.startsWith("icy://")) {
-                return AudioReference("http://" + reference.identifier.substring(6), reference.title)
+            reference.identifier?.let { identifier ->
+                if (identifier.startsWith("https://") || identifier.startsWith("http://")) {
+                    return reference
+                } else if (identifier.startsWith("icy://")) {
+                    return AudioReference(
+                        identifier = "http://" + identifier.substring(6),
+                        title = reference.title,
+                    )
+                }
             }
             return null
         }

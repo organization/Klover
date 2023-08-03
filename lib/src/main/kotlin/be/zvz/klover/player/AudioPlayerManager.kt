@@ -57,7 +57,16 @@ interface AudioPlayerManager {
      * @see .loadItem
      */
     suspend fun loadItem(identifier: String): AudioLoadResult {
-        return loadItem(AudioReference(identifier, null))
+        return loadItem(AudioReference(identifier))
+    }
+
+    /**
+     * Schedules loading a track or playlist with the ByteArray as source.
+     * @param data    The ByteArray that a specific source manager should be able to find the track with.
+     * @see .loadItem
+     */
+    suspend fun loadItem(data: ByteArray): AudioLoadResult {
+        return loadItem(AudioReference(data = data))
     }
 
     /**

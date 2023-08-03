@@ -10,7 +10,7 @@ package be.zvz.klover.track.info
  * @param isStream True if this track is a stream
  * @param uri URL of the track or path to its file.
  */
-class AudioTrackInfo @JvmOverloads constructor(
+class AudioTrackInfo(
     /**
      * Track title
      */
@@ -42,5 +42,9 @@ class AudioTrackInfo @JvmOverloads constructor(
     /**
      * International Standard Recording Code
      */
-    val isrc: String? = null,
+    val iSRC: String? = null,
+    /**
+     * Audio source optional source data
+     */
+    val data: ByteArray? = null,
 )
