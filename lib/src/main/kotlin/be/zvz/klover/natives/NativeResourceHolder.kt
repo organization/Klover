@@ -1,18 +1,18 @@
 package be.zvz.klover.natives
 
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.atomicfu.atomic
 
 /**
  * Abstract instance of a class which holds native resources that must be freed.
  */
 abstract class NativeResourceHolder : AutoCloseable {
-    private val released = AtomicBoolean()
+    private val released = atomic(false)
 
     /**
      * Assert that the native resources have not been freed.
      */
     protected fun checkNotReleased() {
-        check(!released.get()) { "Cannot use the decoder after closing it." }
+        check(!released.value) { "Cannot use the decoder after closing it." }
     }
 
     /**

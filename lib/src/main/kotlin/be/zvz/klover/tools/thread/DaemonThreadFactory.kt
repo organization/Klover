@@ -1,8 +1,8 @@
 package be.zvz.klover.tools.thread
 
+import kotlinx.atomicfu.atomic
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ThreadFactory
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Thread factory for daemon threads.
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class DaemonThreadFactory @JvmOverloads constructor(name: String, exitCallback: Runnable? = null) : ThreadFactory {
     private val group: ThreadGroup = Thread.currentThread().threadGroup
-    private val threadNumber = AtomicInteger(1)
+    private val threadNumber = atomic(1)
     private val namePrefix: String
     private val exitCallback: Runnable?
 
@@ -67,6 +67,6 @@ class DaemonThreadFactory @JvmOverloads constructor(name: String, exitCallback: 
 
     companion object {
         private val log = LoggerFactory.getLogger(DaemonThreadFactory::class.java)
-        private val poolNumber = AtomicInteger(1)
+        private val poolNumber = atomic(1)
     }
 }

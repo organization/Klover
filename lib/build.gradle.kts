@@ -10,13 +10,15 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://jitpack.io")
 }
 
 dependencies {
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test-junit5")
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test")
+    testImplementation(group = "ch.qos.logback", name = "logback-classic", version = "1.4.8")
+
+    implementation(group = "org.jetbrains.kotlinx", name = "atomicfu", version = "0.21.0")
 
     implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.7.3")
 

@@ -18,10 +18,10 @@ import be.zvz.klover.track.playback.AudioFrame
 import be.zvz.klover.track.playback.AudioTrackExecutor
 import be.zvz.klover.track.playback.LocalAudioTrackExecutor
 import be.zvz.klover.track.playback.MutableAudioFrame
+import kotlinx.atomicfu.atomic
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.Volatile
 import kotlin.concurrent.withLock
@@ -48,7 +48,7 @@ class DefaultAudioPlayer(private val manager: DefaultAudioPlayerManager) : Audio
 
     @Volatile
     private var shadowTrack: InternalAudioTrack? = null
-    private val paused: AtomicBoolean = AtomicBoolean()
+    private val paused = atomic(false)
     private val listeners: MutableList<AudioEventListener> = mutableListOf()
     private val trackSwitchLock: ReentrantLock = ReentrantLock()
     private val options: AudioPlayerOptions = AudioPlayerOptions()
@@ -151,7 +151,7 @@ class DefaultAudioPlayer(private val manager: DefaultAudioPlayerManager) : Audio
         var track: InternalAudioTrack? = null
 
         lastRequestTime = System.currentTimeMillis()
-        if (timeout == 0L && paused.get()) {
+        if (timeout == 0L && paused.value) {
             return null
         }
         while (activeTrack?.also { track = it } != null) {
@@ -188,7 +188,7 @@ class DefaultAudioPlayer(private val manager: DefaultAudioPlayerManager) : Audio
     override fun provide(targetFrame: MutableAudioFrame, timeout: Long, unit: TimeUnit): Boolean {
         var track: InternalAudioTrack? = null
         lastRequestTime = System.currentTimeMillis()
-        if (timeout == 0L && paused.get()) {
+        if (timeout == 0L && paused.value) {
             return false
         }
         while (activeTrack.also { track = it } != null) {
@@ -245,28 +245,28 @@ class DefaultAudioPlayer(private val manager: DefaultAudioPlayerManager) : Audio
     }
 
     override var volume: Int
-        get() = options.volumeLevel.get()
+        get() = options.volumeLevel.value
         set(volume) {
-            options.volumeLevel.set(min(1000, max(0, volume)))
+            options.volumeLevel.value = min(1000, max(0, volume))
         }
 
     override var filterFactory: PcmFilterFactory?
-        get() = options.filterFactory.get()
+        get() = options.filterFactory.value
         set(factory) {
-            options.filterFactory.set(factory)
+            options.filterFactory.value = factory
         }
 
     override var frameBufferDuration: Int
-        get() = options.frameBufferDuration.get()
+        get() = options.frameBufferDuration.value
         set(value) {
-            options.frameBufferDuration.set(max(200, value))
+            options.frameBufferDuration.value = max(200, value)
         }
 
     /**
      * @return Whether the player is paused
      */
     override var isPaused: Boolean
-        get() = paused.get()
+        get() = paused.value
         set(value) {
             if (paused.compareAndSet(!value, value)) {
                 if (value) {

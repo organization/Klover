@@ -8,9 +8,10 @@ import be.zvz.klover.container.mpeg.reader.MpegVersionedSectionInfo
 import be.zvz.klover.container.mpeg.reader.fragmented.MpegFragmentedFileTrackProvider
 import be.zvz.klover.container.mpeg.reader.standard.MpegStandardFileTrackProvider
 import be.zvz.klover.tools.io.SeekableInputStream
+import kotlinx.atomicfu.AtomicBoolean
+import kotlinx.atomicfu.atomic
 import java.io.IOException
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Handles processing an MP4 file for the purpose of streaming one specific track from it. Only performs seeks when
@@ -53,9 +54,9 @@ class MpegFileLoader(inputStream: SeekableInputStream) {
      */
     fun parseHeaders() {
         try {
-            val movieBoxSeen = AtomicBoolean()
+            val movieBoxSeen = atomic(false)
             reader.inChain(root).handle("moov") { moov: MpegSectionInfo ->
-                movieBoxSeen.set(true)
+                movieBoxSeen.value = true
                 reader.inChain(moov).handle("trak") { trak: MpegSectionInfo -> parseTrackInfo(trak) }
                     .handle("mvex") { mvex: MpegSectionInfo -> fragmentedFileReader.parseMovieExtended(mvex) }
                     .handle("udta") { udta: MpegSectionInfo -> parseMetadata(udta) }.run()
@@ -118,9 +119,9 @@ class MpegFileLoader(inputStream: SeekableInputStream) {
             if (!start && "sidx" == child.type) {
                 true
             } else if (!start && "emsg" == child.type) {
-                movieBoxSeen.get()
+                movieBoxSeen.value
             } else if (start && ("mdat" == child.type || "free" == child.type)) {
-                movieBoxSeen.get()
+                movieBoxSeen.value
             } else {
                 false
             }

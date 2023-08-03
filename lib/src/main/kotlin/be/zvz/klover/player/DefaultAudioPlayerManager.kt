@@ -16,20 +16,19 @@ import be.zvz.klover.track.InternalAudioTrack
 import be.zvz.klover.track.TrackStateListener
 import be.zvz.klover.track.playback.AudioTrackExecutor
 import be.zvz.klover.track.playback.LocalAudioTrackExecutor
+import kotlinx.atomicfu.atomic
 import org.slf4j.LoggerFactory
-import java.util.Optional
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 
 open class DefaultAudioPlayerManager : AudioPlayerManager {
     override var trackStuckThreshold = 10000L
     override var playerCleanupThreshold: Long
-        get() = cleanupThreshold.get()
+        get() = cleanupThreshold.value
         set(value) {
-            cleanupThreshold.set(value)
+            cleanupThreshold.value = value
         }
-    private val cleanupThreshold = AtomicLong(TimeUnit.MINUTES.toMillis(1))
+    private val cleanupThreshold = atomic(TimeUnit.MINUTES.toMillis(1))
 
     val manager = Executors.newScheduledThreadPool(
         1,
@@ -65,8 +64,10 @@ open class DefaultAudioPlayerManager : AudioPlayerManager {
         return if (customExecutor != null) {
             customExecutor
         } else {
-            val bufferDuration =
-                Optional.ofNullable(playerOptions.frameBufferDuration.get()).orElse(frameBufferDuration)
+            val bufferDuration = when (playerOptions.frameBufferDuration.value) {
+                -1 -> frameBufferDuration
+                else -> playerOptions.frameBufferDuration.value
+            }
             LocalAudioTrackExecutor(track, configuration, playerOptions, isUsingSeekGhosting, bufferDuration)
         }
     }

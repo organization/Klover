@@ -35,7 +35,7 @@ class MatroskaAudioTrack(trackInfo: AudioTrackInfo, private val inputStream: See
         return try {
             val file = MatroskaStreamingFile(inputStream)
             file.readFile()
-            accurateDuration.set(file.duration.toInt().toLong())
+            accurateDuration.value = file.duration.toLong()
             file
         } catch (e: IOException) {
             throw RuntimeException(e)

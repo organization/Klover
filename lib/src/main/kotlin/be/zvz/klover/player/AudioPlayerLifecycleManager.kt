@@ -4,13 +4,14 @@ import be.zvz.klover.player.event.AudioEvent
 import be.zvz.klover.player.event.AudioEventListener
 import be.zvz.klover.player.event.TrackEndEvent
 import be.zvz.klover.player.event.TrackStartEvent
+import kotlinx.atomicfu.AtomicLong
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Triggers cleanup checks on all active audio players at a fixed interval.
@@ -22,7 +23,7 @@ class AudioPlayerLifecycleManager(private val scheduler: ScheduledExecutorServic
     Runnable,
     AudioEventListener {
     private val activePlayers: ConcurrentMap<AudioPlayer, AudioPlayer> = ConcurrentHashMap()
-    private val scheduledTask: AtomicReference<ScheduledFuture<*>> = AtomicReference()
+    private val scheduledTask: AtomicRef<ScheduledFuture<*>?> = atomic(null)
 
     /**
      * Initialise the scheduled task.
@@ -52,7 +53,7 @@ class AudioPlayerLifecycleManager(private val scheduler: ScheduledExecutorServic
 
     override fun run() {
         activePlayers.keys.forEach { player ->
-            player.checkCleanup(cleanupThreshold.get())
+            player.checkCleanup(cleanupThreshold.value)
         }
     }
 

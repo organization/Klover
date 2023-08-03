@@ -25,7 +25,7 @@ open class MpegAudioTrack(trackInfo: AudioTrackInfo, private val inputStream: Se
         try {
             val fileReader = file.loadReader(trackConsumer)
                 ?: throw FriendlyException("Unknown MP4 format.", FriendlyException.Severity.SUSPICIOUS, null)
-            accurateDuration.set(fileReader.duration)
+            accurateDuration.value = fileReader.duration
             localExecutor.executeProcessingLoop(
                 { fileReader.provideFrames() },
                 { timecode: Long -> fileReader.seekToTimecode(timecode) },

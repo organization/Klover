@@ -1,13 +1,13 @@
 package be.zvz.klover.track
 
 import be.zvz.klover.track.TrackMarkerHandler.MarkerState
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.atomicfu.atomic
 
 /**
  * Tracks the state of a track position marker.
  */
 class TrackMarkerTracker {
-    private val current = AtomicReference<TrackMarker?>()
+    private val current = atomic<TrackMarker?>(null)
 
     /**
      * Set a new track position marker.
@@ -44,7 +44,7 @@ class TrackMarkerTracker {
      * @param timecode Timecode which was reached by normal playback.
      */
     fun checkPlaybackTimecode(timecode: Long) {
-        val marker = current.get()
+        val marker = current.value
         if (marker != null && timecode >= marker.timecode) {
             trigger(marker, MarkerState.REACHED)
         }
@@ -55,7 +55,7 @@ class TrackMarkerTracker {
      * @param timecode Timecode which was reached by seeking.
      */
     fun checkSeekTimecode(timecode: Long) {
-        val marker = current.get()
+        val marker = current.value
         if (marker != null && timecode >= marker.timecode) {
             trigger(marker, MarkerState.BYPASSED)
         }

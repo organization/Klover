@@ -7,10 +7,9 @@ import be.zvz.klover.track.playback.AudioFrame
 import be.zvz.klover.track.playback.AudioTrackExecutor
 import be.zvz.klover.track.playback.MutableAudioFrame
 import be.zvz.klover.track.playback.PrimordialAudioTrackExecutor
+import kotlinx.atomicfu.atomic
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.Volatile
 
 /**
@@ -20,25 +19,23 @@ import kotlin.concurrent.Volatile
  */
 abstract class BaseAudioTrack(trackInfo: AudioTrackInfo) : InternalAudioTrack {
     private val initialExecutor: PrimordialAudioTrackExecutor
-    private val executorAssigned: AtomicBoolean
+    private val executorAssigned = atomic(false)
 
     @Volatile
     private var activeExecutor: AudioTrackExecutor?
     override val info: AudioTrackInfo = trackInfo
-    protected val accurateDuration: AtomicLong
+    protected val accurateDuration = atomic(0L)
 
     @Volatile
     override var userData: Any? = null
 
     init {
         initialExecutor = PrimordialAudioTrackExecutor(trackInfo)
-        executorAssigned = AtomicBoolean()
         activeExecutor = null
-        accurateDuration = AtomicLong()
     }
 
     override fun assignExecutor(executor: AudioTrackExecutor, applyPrimordialState: Boolean) {
-        activeExecutor = if (executorAssigned.compareAndSet(false, true)) {
+        activeExecutor = if (executorAssigned.compareAndSet(expect = false, update = true)) {
             if (applyPrimordialState) {
                 initialExecutor.applyStateToExecutor(executor)
             }
@@ -93,7 +90,7 @@ abstract class BaseAudioTrack(trackInfo: AudioTrackInfo) : InternalAudioTrack {
 
     override val duration: Long
         get() {
-            val accurate = accurateDuration.get()
+            val accurate = accurateDuration.value
             return if (accurate == 0L) {
                 info.length
             } else {

@@ -1,7 +1,7 @@
 package be.zvz.klover.track.playback
 
 import be.zvz.klover.format.AudioDataFormat
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.atomicfu.AtomicBoolean
 
 /**
  * Factory for audio frame buffers.

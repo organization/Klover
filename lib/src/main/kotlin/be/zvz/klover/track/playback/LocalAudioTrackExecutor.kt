@@ -10,13 +10,11 @@ import be.zvz.klover.track.TrackMarker
 import be.zvz.klover.track.TrackMarkerHandler.MarkerState
 import be.zvz.klover.track.TrackMarkerTracker
 import be.zvz.klover.track.TrackStateListener
+import kotlinx.atomicfu.atomic
 import org.slf4j.LoggerFactory
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.Volatile
 
 /**
@@ -39,11 +37,11 @@ class LocalAudioTrackExecutor(
     val processingContext: AudioProcessingContext
     private val useSeekGhosting: Boolean
     override val audioBuffer: AudioFrameBuffer
-    private val playingThread = AtomicReference<Thread?>()
-    private val queuedStop = AtomicBoolean(false)
-    private val queuedSeek = AtomicLong(-1)
-    private val lastFrameTimecode = AtomicLong(0)
-    private val state = AtomicReference(AudioTrackState.INACTIVE)
+    private val playingThread = atomic<Thread?>(null)
+    private val queuedStop = atomic(false)
+    private val queuedSeek = atomic(-1L)
+    private val lastFrameTimecode = atomic(0L)
+    private val state = atomic(AudioTrackState.INACTIVE)
     private val actionSynchronizer = Any()
     private val markerTracker = TrackMarkerTracker()
     private var externalSeekPosition: Long = -1
@@ -61,10 +59,10 @@ class LocalAudioTrackExecutor(
 
     val stackTrace: Array<StackTraceElement>?
         get() {
-            val thread = playingThread.get()
+            val thread = playingThread.value
             if (thread != null) {
                 val trace = thread.stackTrace
-                if (playingThread.get() === thread) {
+                if (playingThread.value === thread) {
                     return trace
                 }
             }
@@ -72,7 +70,7 @@ class LocalAudioTrackExecutor(
         }
 
     override fun getState(): AudioTrackState {
-        return state.get()
+        return state.value
     }
 
     override fun execute(listener: TrackStateListener) {
@@ -82,7 +80,7 @@ class LocalAudioTrackExecutor(
         }
         if (playingThread.compareAndSet(null, Thread.currentThread())) {
             log.debug("Starting to play track {} locally with listener {}", audioTrack.info.identifier, listener)
-            state.set(AudioTrackState.LOADING)
+            state.value = AudioTrackState.LOADING
             try {
                 audioTrack.process(this)
                 log.debug("Playing track {} finished or was stopped.", audioTrack.identifier)
@@ -108,7 +106,7 @@ class LocalAudioTrackExecutor(
                     interrupt = if (interrupt != null) interrupt else findInterrupt(null)
                     playingThread.compareAndSet(Thread.currentThread(), null)
                     markerTracker.trigger(MarkerState.ENDED)
-                    state.set(AudioTrackState.FINISHED)
+                    state.value = AudioTrackState.FINISHED
                 }
                 if (interrupt != null) {
                     Thread.currentThread().interrupt()
@@ -121,7 +119,7 @@ class LocalAudioTrackExecutor(
 
     override fun stop() {
         synchronized(actionSynchronizer) {
-            val thread = playingThread.get()
+            val thread = playingThread.value
             if (thread != null) {
                 log.debug("Requesting stop for track {}", audioTrack.identifier)
                 queuedStop.compareAndSet(false, true)
@@ -137,7 +135,7 @@ class LocalAudioTrackExecutor(
      */
     fun checkStopped(): Boolean {
         if (queuedStop.compareAndSet(true, false)) {
-            state.set(AudioTrackState.STOPPING)
+            state.value = AudioTrackState.STOPPING
             return true
         }
         return false
@@ -161,7 +159,7 @@ class LocalAudioTrackExecutor(
      */
     fun interrupt(): Boolean {
         synchronized(actionSynchronizer) {
-            val thread = playingThread.get()
+            val thread = playingThread.value
             if (thread != null) {
                 thread.interrupt()
                 return true
@@ -172,8 +170,8 @@ class LocalAudioTrackExecutor(
 
     override var position: Long
         get() {
-            val seek = queuedSeek.get()
-            return if (seek != -1L) seek else lastFrameTimecode.get()
+            val seek = queuedSeek.value
+            return if (seek != -1L) seek else lastFrameTimecode.value
         }
         set(timecode) {
             var timecode = timecode
@@ -184,7 +182,7 @@ class LocalAudioTrackExecutor(
                 if (timecode < 0) {
                     timecode = 0
                 }
-                queuedSeek.set(timecode)
+                queuedSeek.value = timecode
                 if (!useSeekGhosting) {
                     audioBuffer.clear()
                 }
@@ -196,7 +194,7 @@ class LocalAudioTrackExecutor(
         /**
          * @return True if this track is currently in the middle of a seek.
          */
-        private get() = queuedSeek.get() != -1L || useSeekGhosting && audioBuffer.hasClearOnInsert()
+        private get() = queuedSeek.value != -1L || useSeekGhosting && audioBuffer.hasClearOnInsert()
 
     override fun setMarker(marker: TrackMarker?) {
         markerTracker[marker] = position
@@ -218,7 +216,7 @@ class LocalAudioTrackExecutor(
             return
         }
         while (proceed) {
-            state.set(AudioTrackState.PLAYING)
+            state.value = AudioTrackState.PLAYING
             proceed = false
             try {
                 // An interrupt may have been placed while we were handling the previous one.
@@ -258,7 +256,7 @@ class LocalAudioTrackExecutor(
         synchronized(actionSynchronizer) {
             if (interruptibleForSeek) {
                 interruptibleForSeek = false
-                val thread = playingThread.get()
+                val thread = playingThread.value
                 if (thread != null) {
                     thread.interrupt()
                     interrupted = true
@@ -325,7 +323,7 @@ class LocalAudioTrackExecutor(
         }
         var seekPosition: Long
         synchronized(actionSynchronizer) {
-            seekPosition = queuedSeek.get()
+            seekPosition = queuedSeek.value
             if (seekPosition == -1L) {
                 return SeekResult.NO_SEEK
             }
@@ -354,13 +352,13 @@ class LocalAudioTrackExecutor(
     }
 
     private fun applySeekState(seekPosition: Long) {
-        state.set(AudioTrackState.SEEKING)
+        state.value = AudioTrackState.SEEKING
         if (useSeekGhosting) {
             audioBuffer.setClearOnInsert()
         } else {
             audioBuffer.clear()
         }
-        queuedSeek.set(-1)
+        queuedSeek.value = -1
         markerTracker.checkSeekTimecode(seekPosition)
     }
 
@@ -399,7 +397,7 @@ class LocalAudioTrackExecutor(
             if (!isPerformingSeek) {
                 markerTracker.checkPlaybackTimecode(frame.timecode)
             }
-            lastFrameTimecode.set(frame.timecode)
+            lastFrameTimecode.value = frame.timecode
         }
     }
 

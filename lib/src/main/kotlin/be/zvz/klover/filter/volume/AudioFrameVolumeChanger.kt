@@ -80,7 +80,7 @@ class AudioFrameVolumeChanger private constructor(
             val volumeChanger = AudioFrameVolumeChanger(
                 context.configuration,
                 context.outputFormat,
-                context.playerOptions.volumeLevel.get(),
+                context.playerOptions.volumeLevel.value,
             )
             try {
                 volumeChanger.setupLibraries()

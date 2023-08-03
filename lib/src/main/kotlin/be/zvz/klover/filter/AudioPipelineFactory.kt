@@ -15,7 +15,7 @@ object AudioPipelineFactory {
      */
     @JvmStatic
     fun isProcessingRequired(context: AudioProcessingContext, inputFormat: AudioDataFormat?): Boolean {
-        return context.outputFormat != inputFormat || context.playerOptions.volumeLevel.get() != 100 || context.playerOptions.filterFactory.get() != null
+        return context.outputFormat != inputFormat || context.playerOptions.volumeLevel.value != 100 || context.playerOptions.filterFactory.value != null
     }
 
     /**
@@ -32,7 +32,7 @@ object AudioPipelineFactory {
         val end: UniversalPcmAudioFilter = FinalPcmAudioFilter(context, createPostProcessors(context))
         val builder = FilterChainBuilder()
         builder.addFirst(end)
-        if (context.filterHotSwapEnabled || context.playerOptions.filterFactory.get() != null) {
+        if (context.filterHotSwapEnabled || context.playerOptions.filterFactory.value != null) {
             val userFilters = UserProvidedAudioFilters(context, end)
             builder.addFirst(userFilters)
         }

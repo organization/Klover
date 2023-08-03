@@ -7,10 +7,10 @@ import be.zvz.klover.container.mpeg.reader.MpegSectionInfo
 import be.zvz.klover.container.mpeg.reader.MpegVersionedSectionInfo
 import be.zvz.klover.tools.Units
 import be.zvz.klover.tools.io.DetachedByteChannel
+import kotlinx.atomicfu.atomic
 import java.io.IOException
 import java.nio.channels.Channels
 import java.nio.channels.ReadableByteChannel
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Track provider for fragmented MP4 file format.
@@ -43,7 +43,7 @@ class MpegFragmentedFileTrackProvider(private val reader: MpegReader, private va
                 reader.skip(moof)
                 continue
             }
-            val fragment = parseTrackMovieFragment(moof, consumer.track.trackId)
+            val fragment = parseTrackMovieFragment(moof, consumer.track.trackId)!!
             val mdat = reader.nextChild(root)
             val timecode = fragment.baseTimecode
             reader.seek.seek(moof.offset + fragment.dataOffset)
@@ -133,8 +133,8 @@ class MpegFragmentedFileTrackProvider(private val reader: MpegReader, private va
     }
 
     @Throws(IOException::class)
-    private fun parseTrackMovieFragment(moof: MpegSectionInfo, trackId: Int): MpegTrackFragmentHeader {
-        val header = AtomicReference<MpegTrackFragmentHeader>()
+    private fun parseTrackMovieFragment(moof: MpegSectionInfo, trackId: Int): MpegTrackFragmentHeader? {
+        val header = atomic<MpegTrackFragmentHeader?>(null)
         reader.inChain(moof).handle("traf") { traf: MpegSectionInfo ->
             val builder = MpegTrackFragmentHeader.Builder()
             reader.inChain(traf)
@@ -154,10 +154,10 @@ class MpegFragmentedFileTrackProvider(private val reader: MpegReader, private va
                     }
                 }.run()
             if (builder.trackId == trackId) {
-                header.set(builder.build())
+                header.value = builder.build()
             }
         }.run()
-        return header.get()
+        return header.value
     }
 
     @Throws(IOException::class)

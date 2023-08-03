@@ -1,11 +1,11 @@
 package be.zvz.klover.track.playback
 
 import be.zvz.klover.format.AudioDataFormat
+import kotlinx.atomicfu.AtomicBoolean
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.withLock
 
 /**
@@ -130,7 +130,7 @@ class AllocatingAudioFrameBuffer(bufferDuration: Int, format: AudioDataFormat, s
         // still trigger. Guarantees that stopped tracks cannot get stuck in this method. Possible performance improvement:
         // offer with timeout, check stopping if timed out, then put?
         var frame = frame
-        if (stopping != null && stopping.get()) {
+        if (stopping != null && stopping.value) {
             throw InterruptedException()
         }
         if (!locked) {
