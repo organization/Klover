@@ -1,30 +1,149 @@
 package be.zvz.klover.player
 
 import be.zvz.klover.source.AudioSourceManager
+import be.zvz.klover.source.ProbingAudioSourceManager
+import be.zvz.klover.tools.exception.ExceptionTools
+import be.zvz.klover.tools.exception.FriendlyException
 import be.zvz.klover.tools.io.MessageInput
 import be.zvz.klover.tools.io.MessageOutput
+import be.zvz.klover.tools.thread.DaemonThreadFactory
+import be.zvz.klover.tools.thread.JobQueue
+import be.zvz.klover.track.AudioPlaylist
 import be.zvz.klover.track.AudioReference
 import be.zvz.klover.track.AudioTrack
 import be.zvz.klover.track.DecodedTrackHolder
+import be.zvz.klover.track.InternalAudioTrack
+import be.zvz.klover.track.TrackStateListener
+import be.zvz.klover.track.playback.AudioTrackExecutor
+import be.zvz.klover.track.playback.LocalAudioTrackExecutor
+import org.slf4j.LoggerFactory
+import java.util.Optional
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
-class DefaultAudioPlayerManager : AudioPlayerManager {
+open class DefaultAudioPlayerManager : AudioPlayerManager {
+    override var trackStuckThreshold = 10000L
+    override var playerCleanupThreshold: Long
+        get() = cleanupThreshold.get()
+        set(value) {
+            cleanupThreshold.set(value)
+        }
+    private val cleanupThreshold = AtomicLong(TimeUnit.MINUTES.toMillis(1))
+
+    val manager = Executors.newScheduledThreadPool(
+        1,
+        DaemonThreadFactory("manager"),
+    )
+    val lifecycleManager = AudioPlayerLifecycleManager(manager, cleanupThreshold)
+    private val jobQueue = JobQueue()
+
+    /**
+     * Executes an audio track with the given player and volume.
+     * @param listener A listener for track state events
+     * @param track The audio track to execute
+     * @param configuration The audio configuration to use for executing
+     * @param playerOptions Options of the audio player
+     */
+    fun executeTrack(
+        listener: TrackStateListener,
+        track: InternalAudioTrack,
+        configuration: AudioConfiguration,
+        playerOptions: AudioPlayerOptions,
+    ) {
+        val executor: AudioTrackExecutor = createExecutorForTrack(track, configuration, playerOptions)
+        track.assignExecutor(executor, true)
+        jobQueue.submit { executor.execute(listener) }
+    }
+
+    private fun createExecutorForTrack(
+        track: InternalAudioTrack,
+        configuration: AudioConfiguration,
+        playerOptions: AudioPlayerOptions,
+    ): AudioTrackExecutor {
+        val customExecutor = track.createLocalExecutor(this)
+        return if (customExecutor != null) {
+            customExecutor
+        } else {
+            val bufferDuration =
+                Optional.ofNullable(playerOptions.frameBufferDuration.get()).orElse(frameBufferDuration)
+            LocalAudioTrackExecutor(track, configuration, playerOptions, isUsingSeekGhosting, bufferDuration)
+        }
+    }
+
     override fun shutdown() {
-        TODO("Not yet implemented")
+        jobQueue.cancel()
     }
 
     override fun registerSourceManager(sourceManager: AudioSourceManager) {
-        TODO("Not yet implemented")
+        sourceManagers.add(sourceManager)
     }
 
     override fun <T : AudioSourceManager> source(klass: Class<T>): T {
-        TODO("Not yet implemented")
+        return sourceManagers.filterIsInstance(klass).first()
     }
 
-    override val sourceManagers: List<AudioSourceManager>
-        get() = TODO("Not yet implemented")
+    override val sourceManagers = mutableListOf<AudioSourceManager>()
 
     override suspend fun loadItem(reference: AudioReference): AudioPlayerManager.AudioLoadResult {
-        TODO("Not yet implemented")
+        return createItemLoader(reference)
+    }
+
+    private fun createItemLoader(reference: AudioReference): AudioPlayerManager.AudioLoadResult {
+        return try {
+            val result = checkSourcesForItem(reference)
+            if (result is AudioPlayerManager.NoMatches) {
+                log.debug(
+                    "No matches for track with identifier {}.",
+                    reference.identifier,
+                )
+            }
+            result
+        } catch (throwable: Throwable) {
+            dispatchItemLoadFailure(reference.identifier, throwable)
+        }
+    }
+
+    private fun dispatchItemLoadFailure(
+        identifier: String?,
+        throwable: Throwable,
+    ): AudioPlayerManager.AudioLoadResult {
+        val exception =
+            ExceptionTools.wrapUnfriendlyExceptions(
+                "Something went wrong when looking up the track",
+                FriendlyException.Severity.FAULT,
+                throwable,
+            )
+        ExceptionTools.log(log, exception, "loading item $identifier")
+        return AudioPlayerManager.LoadFailed(exception)
+    }
+
+    private fun checkSourcesForItem(
+        reference: AudioReference,
+    ): AudioPlayerManager.AudioLoadResult {
+        for (sourceManager in sourceManagers) {
+            if (reference.containerDescriptor != null && sourceManager !is ProbingAudioSourceManager) {
+                continue
+            }
+            sourceManager.loadItem(this, reference)?.let { item ->
+                if (item is AudioTrack) {
+                    log.debug(
+                        "Loaded a track with identifier {} using {}.",
+                        reference.identifier,
+                        sourceManager::class.java.simpleName,
+                    )
+                    return AudioPlayerManager.TrackLoaded(item)
+                } else if (item is AudioPlaylist) {
+                    log.debug(
+                        "Loaded a playlist with identifier {} using {}.",
+                        reference.identifier,
+                        sourceManager::class.java.simpleName,
+                    )
+                    return AudioPlayerManager.PlaylistLoaded(item)
+                }
+            }
+        }
+        return AudioPlayerManager.NoMatches()
     }
 
     override fun encodeTrack(stream: MessageOutput, track: AudioTrack) {
@@ -35,32 +154,21 @@ class DefaultAudioPlayerManager : AudioPlayerManager {
         TODO("Not yet implemented")
     }
 
-    override val configuration: AudioConfiguration
-        get() = TODO("Not yet implemented")
-    override val isUsingSeekGhosting: Boolean
-        get() = TODO("Not yet implemented")
-
-    override fun setUseSeekGhosting(useSeekGhosting: Boolean) {
-        TODO("Not yet implemented")
-    }
-
-    override var frameBufferDuration: Int
-        get() = TODO("Not yet implemented")
-        set(value) {}
-
-    override fun setTrackStuckThreshold(trackStuckThreshold: Long) {
-        TODO("Not yet implemented")
-    }
-
-    override fun setPlayerCleanupThreshold(cleanupThreshold: Long) {
-        TODO("Not yet implemented")
-    }
-
-    override fun setItemLoaderThreadPoolSize(poolSize: Int) {
-        TODO("Not yet implemented")
-    }
+    override val configuration: AudioConfiguration = AudioConfiguration()
+    override val isUsingSeekGhosting: Boolean = false
+    override var frameBufferDuration: Int = TimeUnit.SECONDS.toMillis(5).toInt()
 
     override fun createPlayer(): AudioPlayer {
-        TODO("Not yet implemented")
+        val player = constructPlayer()
+        player.addListener(lifecycleManager)
+        return player
+    }
+
+    protected fun constructPlayer(): AudioPlayer {
+        return DefaultAudioPlayer(this)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(DefaultAudioPlayerManager::class.java)
     }
 }

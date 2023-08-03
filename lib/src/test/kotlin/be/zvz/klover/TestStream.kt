@@ -5,24 +5,30 @@ import be.zvz.klover.format.StandardAudioDataFormats.COMMON_PCM_S16_BE
 import be.zvz.klover.player.AudioPlayer
 import be.zvz.klover.player.AudioPlayerManager
 import be.zvz.klover.player.DefaultAudioPlayerManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import be.zvz.klover.source.http.HttpAudioSourceManager
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.SourceDataLine
 
-fun main() {
+suspend fun main() {
     val manager: AudioPlayerManager = DefaultAudioPlayerManager()
+    manager.registerSourceManager(HttpAudioSourceManager())
     manager.configuration.outputFormat = COMMON_PCM_S16_BE
     val player: AudioPlayer = manager.createPlayer()
-    CoroutineScope(Dispatchers.IO).launch {
-        val result = manager.loadItem("https://download.samplelib.com/mp3/sample-15s.mp3")
-        if (result is AudioPlayerManager.AudioLoadFailed) {
-            println("Failed to load track: $result")
-            return@launch
+    val result = manager.loadItem("https://download.samplelib.com/mp3/sample-15s.mp3")
+    if (result is AudioPlayerManager.AudioLoadFailed) {
+        println("Failed to load track: $result")
+        if (result is AudioPlayerManager.LoadFailed) {
+            println("Load error: ${result.exception.message}")
         }
+        return
+    }
 
+    println(result)
+
+    if (result is AudioPlayerManager.TrackLoaded) {
+        println("Playing track: ${result.track.info.title}")
+        player.playTrack(result.track)
         val format = manager.configuration.outputFormat
         AudioPlayerInputStream.createStream(player, format, 10000L, false).use { stream ->
             val info = DataLine.Info(SourceDataLine::class.java, stream.format)

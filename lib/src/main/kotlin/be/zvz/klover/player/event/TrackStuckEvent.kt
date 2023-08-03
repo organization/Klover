@@ -16,10 +16,10 @@ class TrackStuckEvent(
     /**
      * Audio track where the exception occurred
      */
-    val track: AudioTrack,
+    val track: AudioTrack?,
     /**
      * The wait threshold that was exceeded for this event to trigger
      */
     val thresholdMs: Long,
-    val stackTrace: Array<StackTraceElement>,
+    val stackTrace: Array<StackTraceElement>?,
 ) : AudioEvent(player)

@@ -36,10 +36,8 @@ enum class MediaContainer(
 
     companion object {
         fun asList(): MutableList<MediaContainerProbe> {
-            val probes: MutableList<MediaContainerProbe> = ArrayList()
-            for (container in MediaContainer::class.java.enumConstants) {
-                probes.add(container.probe)
-            }
+            val probes = mutableListOf<MediaContainerProbe>()
+            entries.mapTo(probes) { it.probe }
             return probes
         }
     }

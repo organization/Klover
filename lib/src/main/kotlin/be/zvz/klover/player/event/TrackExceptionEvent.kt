@@ -16,9 +16,9 @@ class TrackExceptionEvent(
     /**
      * Audio track where the exception occurred
      */
-    val track: AudioTrack,
+    val track: AudioTrack?,
     /**
      * The exception that occurred
      */
-    val exception: FriendlyException,
+    val exception: FriendlyException?,
 ) : AudioEvent(player)

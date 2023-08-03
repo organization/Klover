@@ -17,6 +17,12 @@ class MutableMatroskaBlock : MatroskaBlock {
         private set
     private lateinit var frameSizes: IntArray
     override var frameCount = 0
+        set(value) {
+            if (::frameSizes.isInitialized || frameSizes.size < frameCount) {
+                frameSizes = IntArray(frameCount * 2)
+            }
+            field = value
+        }
     private var buffer: ByteBuffer? = null
     private var bufferArray: ByteArray = ByteArray(0)
 
@@ -57,10 +63,10 @@ class MutableMatroskaBlock : MatroskaBlock {
         isKeyFrame = flags and 0x80 != 0
         val laceType = flags and 0x06 shr 1
         if (laceType != 0) {
-            setFrameCount((input.readByte().toInt() and 0xFF) + 1)
+            frameCount = (input.readByte().toInt() and 0xFF) + 1
             parseLacing(reader, element, laceType)
         } else {
-            setFrameCount(1)
+            frameCount = 1
             frameSizes[0] = element.getRemaining(reader.position).toInt()
         }
         return true
@@ -68,19 +74,12 @@ class MutableMatroskaBlock : MatroskaBlock {
 
     @Throws(IOException::class)
     private fun parseLacing(reader: MatroskaFileReader, element: MatroskaElement, laceType: Int) {
-        setFrameCount(frameCount)
+        frameCount = frameCount
         when (laceType) {
             1 -> parseXiphLaceSizes(reader, element)
             2 -> parseFixedLaceSizes(reader, element)
             else -> parseEbmlLaceSizes(reader, element)
         }
-    }
-
-    private fun setFrameCount(frameCount: Int) {
-        if (::frameSizes.isInitialized || frameSizes.size < frameCount) {
-            frameSizes = IntArray(frameCount * 2)
-        }
-        this.frameCount = frameCount
     }
 
     @Throws(IOException::class)

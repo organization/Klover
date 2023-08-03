@@ -30,9 +30,11 @@ interface AudioPlayer : AudioFrameProvider {
      * Stop currently playing track.
      */
     fun stopTrack()
+
     var volume: Int
-    fun setFilterFactory(factory: PcmFilterFactory?)
-    fun setFrameBufferDuration(duration: Int?)
+
+    var filterFactory: PcmFilterFactory?
+    var frameBufferDuration: Int
 
     /**
      * True to pause, false to resume
@@ -48,13 +50,13 @@ interface AudioPlayer : AudioFrameProvider {
      * Add a listener to events from this player.
      * @param listener New listener
      */
-    fun addListener(listener: AudioEventListener?)
+    fun addListener(listener: AudioEventListener)
 
     /**
      * Remove an attached listener using identity comparison.
      * @param listener The listener to remove
      */
-    fun removeListener(listener: AudioEventListener?)
+    fun removeListener(listener: AudioEventListener)
 
     /**
      * Check if the player should be "cleaned up" - stopped due to nothing using it, with the given threshold.

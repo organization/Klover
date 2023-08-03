@@ -11,11 +11,11 @@ import be.zvz.klover.track.AudioTrackEndReason
  * @param track Audio track that ended
  * @param endReason The reason why the track stopped playing
  */
-class TrackEndEvent(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) : AudioEvent(player) {
+class TrackEndEvent(player: AudioPlayer, track: AudioTrack?, endReason: AudioTrackEndReason) : AudioEvent(player) {
     /**
      * Audio track that ended
      */
-    val track: AudioTrack
+    val track: AudioTrack?
 
     /**
      * The reason why the track stopped playing

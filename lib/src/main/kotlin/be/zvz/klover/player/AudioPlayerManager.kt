@@ -107,37 +107,21 @@ interface AudioPlayerManager {
     val isUsingSeekGhosting: Boolean
 
     /**
-     * @param useSeekGhosting The new state of seek ghosting
-     */
-    fun setUseSeekGhosting(useSeekGhosting: Boolean)
-
-    /**
      * The length of the internal buffer for audio in milliseconds.
      */
     var frameBufferDuration: Int
 
     /**
-     * Sets the threshold for how long a track can be stuck until the TrackStuckEvent is sent out. A track is considered
+     * The threshold for how long a track can be stuck until the TrackStuckEvent is sent out. A track is considered
      * to be stuck if the player receives requests for audio samples from the track, but the audio frame provider of that
      * track has been returning no data for the specified time.
-     *
-     * @param trackStuckThreshold The threshold in milliseconds.
      */
-    fun setTrackStuckThreshold(trackStuckThreshold: Long)
+    var trackStuckThreshold: Long
 
     /**
-     * Sets the threshold for clearing an audio player when it has not been queried for the specified amount of time.
-     *
-     * @param cleanupThreshold The threshold in milliseconds.
+     * The threshold for clearing an audio player when it has not been queried for the specified amount of time.
      */
-    fun setPlayerCleanupThreshold(cleanupThreshold: Long)
-
-    /**
-     * Sets the number of threads used for loading processing item load requests.
-     *
-     * @param poolSize Maximum number of concurrent threads used for loading items.
-     */
-    fun setItemLoaderThreadPoolSize(poolSize: Int)
+    var playerCleanupThreshold: Long
 
     /**
      * @return New audio player.
