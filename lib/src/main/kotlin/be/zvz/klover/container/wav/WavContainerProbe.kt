@@ -46,7 +46,7 @@ class WavContainerProbe : MediaContainerProbe {
     }
 
     override fun createTrack(
-        parameters: String,
+        parameters: String?,
         trackInfo: AudioTrackInfo,
         inputStream: SeekableInputStream,
     ): AudioTrack {

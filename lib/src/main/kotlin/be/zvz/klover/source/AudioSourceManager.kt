@@ -19,7 +19,7 @@ interface AudioSourceManager {
      *
      * @return The name of this source manager
      */
-    val sourceName: String?
+    val sourceName: String
 
     /**
      * Returns an audio track for the input string. It should return null if it can immediately detect that there is no
@@ -30,7 +30,7 @@ interface AudioSourceManager {
      * @param reference The reference with the identifier which the source manager should find the track with
      * @return The loaded item or null on unrecognized identifier
      */
-    fun loadItem(manager: AudioPlayerManager?, reference: AudioReference?): AudioItem?
+    fun loadItem(manager: AudioPlayerManager, reference: AudioReference): AudioItem?
 
     /**
      * Returns whether the specified track can be encoded. The argument is always a track created by this manager. Being
@@ -40,7 +40,7 @@ interface AudioSourceManager {
      * @param track The track to check
      * @return True if it is encodable
      */
-    fun isTrackEncodable(track: AudioTrack?): Boolean
+    fun isTrackEncodable(track: AudioTrack): Boolean
 
     /**
      * Encodes an audio track into the specified output. The contents of AudioTrackInfo do not have to be included since
@@ -52,7 +52,7 @@ interface AudioSourceManager {
      * @throws IOException On write error.
      */
     @Throws(IOException::class)
-    fun encodeTrack(track: AudioTrack?, output: DataOutput?)
+    fun encodeTrack(track: AudioTrack, output: DataOutput)
 
     /**
      * Decodes an audio track from the encoded format encoded with encodeTrack().
@@ -63,7 +63,7 @@ interface AudioSourceManager {
      * @throws IOException On read error.
      */
     @Throws(IOException::class)
-    fun decodeTrack(trackInfo: AudioTrackInfo?, input: DataInput?): AudioTrack?
+    fun decodeTrack(trackInfo: AudioTrackInfo, input: DataInput): AudioTrack?
 
     /**
      * Shut down the source manager, freeing all associated resources and threads. A source manager is not responsible for

@@ -10,6 +10,7 @@ object AudioDataFormatTools {
      * @param format Audio data format to convert to JDK audio format
      * @return JDK audio format for the specified format.
      */
+    @JvmStatic
     fun toAudioFormat(format: AudioDataFormat): AudioFormat {
         return if (format is Pcm16AudioDataFormat) {
             AudioFormat(

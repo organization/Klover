@@ -123,7 +123,7 @@ abstract class BaseAudioTrack(trackInfo: AudioTrackInfo) : InternalAudioTrack {
         }
     }
 
-    protected fun makeShallowClone(): AudioTrack {
+    protected open fun makeShallowClone(): AudioTrack {
         throw UnsupportedOperationException()
     }
 }

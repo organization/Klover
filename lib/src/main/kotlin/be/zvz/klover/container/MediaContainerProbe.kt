@@ -44,5 +44,5 @@ interface MediaContainerProbe {
      * @param inputStream Input stream of the track file
      * @return A new audio track
      */
-    fun createTrack(parameters: String, trackInfo: AudioTrackInfo, inputStream: SeekableInputStream): AudioTrack
+    fun createTrack(parameters: String?, trackInfo: AudioTrackInfo, inputStream: SeekableInputStream): AudioTrack
 }

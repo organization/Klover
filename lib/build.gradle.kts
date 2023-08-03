@@ -16,6 +16,7 @@ repositories {
 dependencies {
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test-junit5")
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test")
+    testImplementation(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.7.3")
 
     implementation(group = "com.sedmelluq", name = "lava-common", version = "1.1.2")
 

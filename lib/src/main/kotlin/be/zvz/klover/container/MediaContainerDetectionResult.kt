@@ -29,7 +29,7 @@ class MediaContainerDetectionResult private constructor(
         /**
          * @return The probe for the container of the file
          */
-        get() = MediaContainerDescriptor(containerProbe, probeSettings!!)
+        get() = MediaContainerDescriptor(containerProbe!!, probeSettings)
     val isSupportedFile: Boolean
         /**
          * @return Whether this specific file is supported. If this returns true, the track info is non-null. Otherwise

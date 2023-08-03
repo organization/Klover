@@ -1,13 +1,14 @@
 package be.zvz.klover.player
 
 import be.zvz.klover.source.AudioSourceManager
+import be.zvz.klover.tools.exception.FriendlyException
 import be.zvz.klover.tools.io.MessageInput
 import be.zvz.klover.tools.io.MessageOutput
+import be.zvz.klover.track.AudioPlaylist
 import be.zvz.klover.track.AudioReference
 import be.zvz.klover.track.AudioTrack
 import be.zvz.klover.track.DecodedTrackHolder
 import java.io.IOException
-import java.util.concurrent.Future
 
 /**
  * Audio player manager which is used for creating audio players and loading tracks and playlists.
@@ -24,46 +25,39 @@ interface AudioPlayerManager {
     fun shutdown()
 
     /**
-     * Configure to use remote nodes for playback. On consecutive calls, the connections with previously used nodes will
-     * be severed and all remotely playing tracks will be stopped first.
-     *
-     * @param nodeAddresses The addresses of the remote nodes
-     */
-    fun useRemoteNodes(vararg nodeAddresses: String?)
-
-    /**
-     * Enable reporting GC pause length statistics to log (warn level with lengths bad for latency, debug level otherwise)
-     */
-    fun enableGcMonitoring()
-
-    /**
      * @param sourceManager The source manager to register, which will be used for subsequent loadItem calls
      */
-    fun registerSourceManager(sourceManager: AudioSourceManager?)
+    fun registerSourceManager(sourceManager: AudioSourceManager)
 
     /**
      * Shortcut for accessing a source manager of a certain class.
      * @param klass The class of the source manager to return.
      * @param <T> The class of the source manager.
      * @return The source manager of the specified class, or null if not registered.
-     </T> */
-    fun <T : AudioSourceManager?> source(klass: Class<T>?): T
+     */
+    fun <T : AudioSourceManager> source(klass: Class<T>): T
 
     /**
      * @return A list of all registered audio source managers.
      */
-    val sourceManagers: List<AudioSourceManager?>?
+    val sourceManagers: List<AudioSourceManager>
+
+    interface AudioLoadResult
+    interface AudioLoadSuccessful : AudioLoadResult
+    interface AudioLoadFailed : AudioLoadResult
+
+    class TrackLoaded(val track: AudioTrack) : AudioLoadSuccessful
+    class PlaylistLoaded(val playlist: AudioPlaylist) : AudioLoadSuccessful
+    class NoMatches : AudioLoadFailed
+    class LoadFailed(val exception: FriendlyException) : AudioLoadFailed
 
     /**
      * Schedules loading a track or playlist with the specified identifier.
      * @param identifier    The identifier that a specific source manager should be able to find the track with.
-     * @param resultHandler A handler to process the result of this operation. It can either end by finding a track,
-     * finding a playlist, finding nothing or terminating with an exception.
-     * @return A future for this operation
      * @see .loadItem
      */
-    fun loadItem(identifier: String?, resultHandler: AudioLoadResultHandler?): Future<Void?>? {
-        return loadItem(AudioReference(identifier, null), resultHandler)
+    suspend fun loadItem(identifier: String): AudioLoadResult {
+        return loadItem(AudioReference(identifier, null))
     }
 
     /**
@@ -72,47 +66,9 @@ interface AudioPlayerManager {
      * should be able to find the track with.
      * @param resultHandler A handler to process the result of this operation. It can either end by finding a track,
      * finding a playlist, finding nothing or terminating with an exception.
-     * @return A future for this operation
      * @see .loadItem
      */
-    fun loadItem(reference: AudioReference?, resultHandler: AudioLoadResultHandler?): Future<Void?>?
-
-    /**
-     * Schedules loading a track or playlist with the specified identifier with an ordering key so that items with the
-     * same ordering key are handled sequentially in the order of calls to this method.
-     *
-     * @param orderingKey   Object to use as the key for the ordering channel
-     * @param identifier    The identifier that a specific source manager should be able to find the track with.
-     * @param resultHandler A handler to process the result of this operation. It can either end by finding a track,
-     * finding a playlist, finding nothing or terminating with an exception.
-     * @return A future for this operation
-     * @see .loadItemOrdered
-     */
-    fun loadItemOrdered(
-        orderingKey: Any?,
-        identifier: String?,
-        resultHandler: AudioLoadResultHandler?,
-    ): Future<Void?>? {
-        return loadItemOrdered(orderingKey, AudioReference(identifier, null), resultHandler)
-    }
-
-    /**
-     * Schedules loading a track or playlist with the specified identifier with an ordering key so that items with the
-     * same ordering key are handled sequentially in the order of calls to this method.
-     *
-     * @param orderingKey   Object to use as the key for the ordering channel
-     * @param reference     The audio reference that holds the identifier that a specific source manager
-     * should be able to find the track with.
-     * @param resultHandler A handler to process the result of this operation. It can either end by finding a track,
-     * finding a playlist, finding nothing or terminating with an exception.
-     * @return A future for this operation
-     * @see .loadItemOrdered
-     */
-    fun loadItemOrdered(
-        orderingKey: Any?,
-        reference: AudioReference?,
-        resultHandler: AudioLoadResultHandler?,
-    ): Future<Void?>?
+    suspend fun loadItem(reference: AudioReference): AudioLoadResult
 
     /**
      * Encode a track into an output stream. If the decoder is not supposed to know the number of tracks in advance, then
@@ -124,7 +80,7 @@ interface AudioPlayerManager {
      * @throws IOException On IO error.
      */
     @Throws(IOException::class)
-    fun encodeTrack(stream: MessageOutput?, track: AudioTrack?)
+    fun encodeTrack(stream: MessageOutput, track: AudioTrack)
 
     /**
      * Decode a track from an input stream. Null returns value indicates reaching the position where the decoder had
@@ -135,12 +91,12 @@ interface AudioPlayerManager {
      * @throws IOException On IO error.
      */
     @Throws(IOException::class)
-    fun decodeTrack(stream: MessageInput?): DecodedTrackHolder?
+    fun decodeTrack(stream: MessageInput): DecodedTrackHolder
 
     /**
      * @return Audio processing configuration used for tracks executed by this manager.
      */
-    val configuration: AudioConfiguration?
+    val configuration: AudioConfiguration
 
     /**
      * Seek ghosting is the effect where while a seek is in progress, buffered audio from the previous location will be
@@ -186,5 +142,5 @@ interface AudioPlayerManager {
     /**
      * @return New audio player.
      */
-    fun createPlayer(): AudioPlayer?
+    fun createPlayer(): AudioPlayer
 }
